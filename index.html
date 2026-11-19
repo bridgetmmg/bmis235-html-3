@@ -36,7 +36,142 @@
      This box is empty on purpose. In Part 7 you paste an interactive
      graphic BETWEEN the opening <div> and the closing </div> below.
      ===================================================================== -->
-<div class="showcase"></div>
+<div class="showcase">
+  <!-- HTML: the map (an SVG outline of Portugal with three clickable city markers) and the info card that updates when you pick a city. -->
+<div class="pt-wrap">
+  <div class="pt-map">
+    <svg class="pt-svg" viewBox="-10 -5 220 410" role="group" aria-label="Map of Portugal with Porto, Nazaré and Lisbon">
+      <polygon class="pt-land" points="78,4 134,19 190,46 151,91 157,144 146,190 129,220 120,251 134,304 118,357 123,380 95,395 36,394 45,357 46,319 21,288 6,266 11,217 30,198 39,152 48,118 55,80 42,23"/>
+
+      <g class="pt-city" data-city="porto" tabindex="0" role="button" aria-pressed="false" aria-label="Porto">
+        <circle class="pt-dot" cx="55" cy="80" r="6"/>
+        <text class="pt-label" x="68" y="85">Porto</text>
+      </g>
+
+      <g class="pt-city" data-city="nazare" tabindex="0" role="button" aria-pressed="false" aria-label="Nazaré">
+        <circle class="pt-dot" cx="30" cy="198" r="6"/>
+        <text class="pt-label" x="43" y="203">Nazaré</text>
+      </g>
+
+      <g class="pt-city" data-city="lisbon" tabindex="0" role="button" aria-pressed="false" aria-label="Lisbon">
+        <circle class="pt-dot" cx="26" cy="265" r="6"/>
+        <text class="pt-label" x="39" y="270">Lisbon</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="pt-card" aria-live="polite">
+    <div class="pt-inner">
+      <div class="pt-kicker">Explore Portugal</div>
+      <div class="pt-title">Pick a city</div>
+      <div class="pt-text">Tap Porto, Nazaré or Lisbon on the map to learn a little about each one.</div>
+      <div class="pt-tags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CSS: brand styling (Merriweather, #4D6489, #2b2b2b) and the layout. Every rule starts with .showcase so nothing leaks into the rest of the page. -->
+<style>
+.showcase .pt-wrap{box-sizing:border-box;display:flex;gap:12px;width:100%;max-width:700px;height:460px;margin:0 auto;padding:12px;background:#fff;border:1px solid #d5dbe6;border-radius:12px;font-family:'Merriweather',Georgia,serif;color:#2b2b2b}
+.showcase .pt-wrap *{box-sizing:border-box}
+.showcase .pt-map{flex:0 0 44%;min-width:0;display:flex;align-items:center;justify-content:center;background:#eaeff6;border-radius:8px;overflow:hidden}
+.showcase .pt-svg{display:block;width:100%;height:100%}
+.showcase .pt-land{fill:#4D6489;stroke:#fff;stroke-width:1.5;stroke-linejoin:round}
+.showcase .pt-city{cursor:pointer;outline:none}
+.showcase .pt-dot{fill:#fff;stroke:#2b2b2b;stroke-width:3;transition:r .2s ease,fill .2s ease}
+.showcase .pt-city:hover .pt-dot{r:8}
+.showcase .pt-city:focus-visible .pt-dot{stroke:#fff;stroke-width:4;fill:#2b2b2b}
+.showcase .pt-city.is-active .pt-dot{r:9;fill:#2b2b2b;stroke:#fff}
+.showcase .pt-label{fill:#fff;font-family:inherit;font-size:13px;font-weight:700;pointer-events:none;paint-order:stroke;stroke:#4D6489;stroke-width:3px}
+.showcase .pt-card{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;overflow:auto;padding:4px 4px 4px 8px}
+.showcase .pt-inner{transition:opacity .15s ease}
+.showcase .pt-inner.is-fading{opacity:0}
+.showcase .pt-kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#4D6489;font-weight:700}
+.showcase .pt-title{margin:6px 0 10px;font-size:26px;font-weight:900;line-height:1.15;color:#4D6489}
+.showcase .pt-text{font-size:14px;line-height:1.65;color:#2b2b2b}
+.showcase .pt-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.showcase .pt-tag{padding:4px 10px;border-radius:999px;background:#4D6489;color:#fff;font-size:11px;line-height:1.4}
+@media (max-width:480px){
+  .showcase .pt-wrap{height:440px;gap:8px;padding:8px}
+  .showcase .pt-map{flex-basis:40%}
+  .showcase .pt-title{font-size:20px;margin:4px 0 8px}
+  .showcase .pt-text{font-size:12.5px;line-height:1.55}
+  .showcase .pt-tag{font-size:10px;padding:3px 8px}
+}
+</style>
+
+<!-- JavaScript: stores the city info, handles clicks and keyboard presses on the markers, and swaps the text in the info card. -->
+<script>
+(function () {
+  var root = document.querySelector('.showcase .pt-wrap');
+  if (!root) return;
+
+  var cities = {
+    porto: {
+      title: 'Porto',
+      text: 'Portugal\u2019s second city sits on the Douro River in the north. It\u2019s known for port wine cellars, the iron Dom Lu\u00eds I Bridge, tiled churches and a colorful riverside district called Ribeira.',
+      tags: ['Port wine', 'Douro River', 'Azulejo tiles']
+    },
+    nazare: {
+      title: 'Nazar\u00e9',
+      text: 'A traditional fishing town on the Atlantic coast. Visit the clifftop S\u00edtio viewpoint, then watch in winter when huge waves roll in and draw surfers from around the world.',
+      tags: ['Big-wave surfing', 'Fishing heritage', 'Ocean views']
+    },
+    lisbon: {
+      title: 'Lisbon',
+      text: 'Portugal\u2019s hilly capital sits where the Tagus River meets the sea. Expect yellow trams, Bel\u00e9m Tower, custard tarts called past\u00e9is de nata and fado music in the evenings.',
+      tags: ['Capital city', 'Yellow trams', 'Past\u00e9is de nata']
+    }
+  };
+
+  var markers = root.querySelectorAll('.pt-city');
+  var inner = root.querySelector('.pt-inner');
+  var kicker = root.querySelector('.pt-kicker');
+  var title = root.querySelector('.pt-title');
+  var text = root.querySelector('.pt-text');
+  var tags = root.querySelector('.pt-tags');
+
+  function show(key) {
+    var c = cities[key];
+    if (!c) return;
+
+    for (var i = 0; i < markers.length; i++) {
+      var on = markers[i].getAttribute('data-city') === key;
+      markers[i].classList.toggle('is-active', on);
+      markers[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
+    inner.classList.add('is-fading');
+    setTimeout(function () {
+      kicker.textContent = 'Portugal';
+      title.textContent = c.title;
+      text.textContent = c.text;
+      tags.textContent = '';
+      for (var j = 0; j < c.tags.length; j++) {
+        var t = document.createElement('span');
+        t.className = 'pt-tag';
+        t.textContent = c.tags[j];
+        tags.appendChild(t);
+      }
+      inner.classList.remove('is-fading');
+    }, 150);
+  }
+
+  for (var i = 0; i < markers.length; i++) {
+    (function (m) {
+      var key = m.getAttribute('data-city');
+      m.addEventListener('click', function () { show(key); });
+      m.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          show(key);
+        }
+      });
+    })(markers[i]);
+  }
+})();
+</script>
+</div>
 
 <!-- Footer: fill in your name -->
 <footer>Built by YOUR NAME &middot; BMIS 235</footer>
